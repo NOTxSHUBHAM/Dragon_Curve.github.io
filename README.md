@@ -1,1 +1,695 @@
-hi 
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enhanced Dragon Curve Visualization</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a2a6c, #b21f1f, #fdbb2d);
+            color: #fff;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            max-width: 800px;
+        }
+
+        h1 {
+            font-size: 2.8rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .subtitle {
+            font-size: 1.2rem;
+            margin-bottom: 20px;
+            opacity: 0.9;
+        }
+
+        .container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 30px;
+            justify-content: center;
+            max-width: 1200px;
+        }
+
+        .canvas-container {
+            background-color: rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+            flex: 1;
+            min-width: 500px;
+            max-width: 700px;
+            position: relative;
+        }
+
+        canvas {
+            width: 100%;
+            height: 500px;
+            background-color: rgba(255, 255, 255, 0.05);
+            border-radius: 5px;
+            display: block;
+        }
+
+        .controls {
+            background-color: rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+            flex: 1;
+            min-width: 300px;
+            max-width: 400px;
+        }
+
+        .control-group {
+            margin-bottom: 25px;
+        }
+
+        h2 {
+            font-size: 1.5rem;
+            margin-bottom: 15px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+            padding-bottom: 8px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+
+        input[type="range"] {
+            width: 100%;
+            margin-bottom: 10px;
+            -webkit-appearance: none;
+            height: 8px;
+            border-radius: 4px;
+            background: rgba(255, 255, 255, 0.2);
+            outline: none;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #4facfe;
+            cursor: pointer;
+        }
+
+        .value-display {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.9rem;
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        .color-controls {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .color-picker {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .color-picker input {
+            width: 40px;
+            height: 30px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+        }
+
+        button {
+            background: linear-gradient(to right, #4facfe, #00f2fe);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            flex: 1;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
+        }
+
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        #pauseBtn {
+            background: linear-gradient(to right, #fd746c, #ff9068);
+        }
+
+        .info {
+            margin-top: 30px;
+            max-width: 800px;
+            background-color: rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+        }
+
+        .info h2 {
+            margin-bottom: 15px;
+        }
+
+        .info p {
+            margin-bottom: 15px;
+            line-height: 1.6;
+        }
+
+        .stats {
+            position: absolute;
+            top: 30px;
+            right: 30px;
+            background-color: rgba(0, 0, 0, 0.5);
+            padding: 10px 15px;
+            border-radius: 5px;
+            font-size: 0.9rem;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                flex-direction: column;
+            }
+            
+            .canvas-container, .controls {
+                min-width: 100%;
+            }
+            
+            h1 {
+                font-size: 2.2rem;
+            }
+            
+            .button-group {
+                flex-direction: column;
+            }
+            
+            .stats {
+                position: relative;
+                top: 0;
+                right: 0;
+                margin-top: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Enhanced Dragon Curve Visualization</h1>
+        <p class="subtitle">Explore the beauty of this mathematical fractal with improved rendering</p>
+    </header>
+
+    <div class="container">
+        <div class="canvas-container">
+            <canvas id="dragonCanvas"></canvas>
+            <div class="stats">
+                Segments: <span id="segmentCount">0</span> | 
+                Iteration: <span id="iterationCount">0</span>
+            </div>
+        </div>
+        
+        <div class="controls">
+            <div class="control-group">
+                <h2>Fractal Controls</h2>
+                <label for="iterations">Iterations: <span id="iterationsValue">10</span></label>
+                <input type="range" id="iterations" min="1" max="18" value="10">
+                <div class="value-display">
+                    <span>Simple</span>
+                    <span>Complex</span>
+                </div>
+                
+                <label for="size">Size: <span id="sizeValue">80</span>%</label>
+                <input type="range" id="size" min="20" max="100" value="80">
+                
+                <label for="speed">Animation Speed: <span id="speedValue">5</span></label>
+                <input type="range" id="speed" min="1" max="10" value="5">
+                
+                <label for="drawMode">Drawing Style:</label>
+                <select id="drawMode">
+                    <option value="gradient">Gradient</option>
+                    <option value="solid">Solid Color</option>
+                    <option value="rainbow">Rainbow</option>
+                </select>
+            </div>
+            
+            <div class="control-group">
+                <h2>Color Controls</h2>
+                <div class="color-controls">
+                    <div class="color-picker">
+                        <label for="startColor">Start:</label>
+                        <input type="color" id="startColor" value="#4facfe">
+                    </div>
+                    <div class="color-picker">
+                        <label for="endColor">End:</label>
+                        <input type="color" id="endColor" value="#00f2fe">
+                    </div>
+                </div>
+                
+                <label for="lineWidth">Line Width: <span id="lineWidthValue">2</span></label>
+                <input type="range" id="lineWidth" min="1" max="10" value="2">
+                
+                <label for="bgOpacity">Background Opacity: <span id="bgOpacityValue">5</span>%</label>
+                <input type="range" id="bgOpacity" min="0" max="20" value="5">
+            </div>
+            
+            <div class="button-group">
+                <button id="animateBtn">Animate Construction</button>
+                <button id="pauseBtn" disabled>Pause</button>
+            </div>
+            <button id="resetBtn">Reset to Default</button>
+        </div>
+    </div>
+    
+    <div class="info">
+        <h2>About the Dragon Curve</h2>
+        <p>The Dragon Curve is a fractal that can be created by repeatedly folding a strip of paper in half. It was first described by mathematician John Heighway in the 1960s.</p>
+        <p>Despite its simple construction rules, the Dragon Curve exhibits complex self-similar patterns and has applications in computer graphics, antenna design, and mathematics education.</p>
+        <p>This enhanced version fixes rendering issues, adds new visualization options, and improves performance.</p>
+    </div>
+
+    <script>
+        // Get DOM elements
+        const canvas = document.getElementById('dragonCanvas');
+        const ctx = canvas.getContext('2d');
+        const iterationsSlider = document.getElementById('iterations');
+        const iterationsValue = document.getElementById('iterationsValue');
+        const sizeSlider = document.getElementById('size');
+        const sizeValue = document.getElementById('sizeValue');
+        const speedSlider = document.getElementById('speed');
+        const speedValue = document.getElementById('speedValue');
+        const startColorPicker = document.getElementById('startColor');
+        const endColorPicker = document.getElementById('endColor');
+        const lineWidthSlider = document.getElementById('lineWidth');
+        const lineWidthValue = document.getElementById('lineWidthValue');
+        const bgOpacitySlider = document.getElementById('bgOpacity');
+        const bgOpacityValue = document.getElementById('bgOpacityValue');
+        const drawModeSelect = document.getElementById('drawMode');
+        const animateBtn = document.getElementById('animateBtn');
+        const pauseBtn = document.getElementById('pauseBtn');
+        const resetBtn = document.getElementById('resetBtn');
+        const segmentCountElement = document.getElementById('segmentCount');
+        const iterationCountElement = document.getElementById('iterationCount');
+
+        // Animation state
+        let animationId = null;
+        let isAnimating = false;
+        let isPaused = false;
+        let currentStep = 0;
+        let currentIteration = 0;
+        let sequence = [];
+
+        // Set canvas dimensions
+        function setCanvasSize() {
+            const container = canvas.parentElement;
+            canvas.width = container.clientWidth;
+            canvas.height = 500;
+        }
+
+        // Improved Dragon curve algorithm using L-system
+        function generateDragonCurve(iterations) {
+            let curve = 'FX';
+            
+            for (let i = 0; i < iterations; i++) {
+                let newCurve = '';
+                for (let j = 0; j < curve.length; j++) {
+                    const char = curve[j];
+                    if (char === 'X') {
+                        newCurve += 'X+YF+';
+                    } else if (char === 'Y') {
+                        newCurve += '-FX-Y';
+                    } else {
+                        newCurve += char;
+                    }
+                }
+                curve = newCurve;
+            }
+            
+            // Convert to drawing instructions
+            const instructions = [];
+            let angle = 0;
+            let x = 0;
+            let y = 0;
+            
+            for (let i = 0; i < curve.length; i++) {
+                const char = curve[i];
+                if (char === 'F') {
+                    instructions.push({type: 'move', x, y, angle});
+                    x += Math.cos(angle);
+                    y += Math.sin(angle);
+                    instructions.push({type: 'line', x, y, angle});
+                } else if (char === '+') {
+                    angle += Math.PI / 2;
+                } else if (char === '-') {
+                    angle -= Math.PI / 2;
+                }
+            }
+            
+            return instructions;
+        }
+
+        // Alternative algorithm using recursive approach for better performance
+        function dragonCurveRecursive(iterations) {
+            if (iterations === 0) {
+                return [{x: 0, y: 0}, {x: 1, y: 0}];
+            }
+            
+            const prev = dragonCurveRecursive(iterations - 1);
+            const result = [];
+            
+            // Add the previous curve
+            for (let i = 0; i < prev.length; i++) {
+                result.push(prev[i]);
+            }
+            
+            // Add the rotated and translated previous curve
+            const lastPoint = prev[prev.length - 1];
+            for (let i = prev.length - 2; i >= 0; i--) {
+                const dx = prev[i].x - lastPoint.x;
+                const dy = prev[i].y - lastPoint.y;
+                result.push({
+                    x: lastPoint.x - dy,
+                    y: lastPoint.y + dx
+                });
+            }
+            
+            return result;
+        }
+
+        // Main dragon curve algorithm
+        function dragonCurve(iterations) {
+            // For better performance with high iterations, use the recursive approach
+            if (iterations > 12) {
+                const points = dragonCurveRecursive(iterations);
+                // Convert to turn sequence for compatibility
+                const sequence = [1]; // Start with a right turn
+                
+                for (let i = 2; i < points.length; i++) {
+                    const p0 = points[i-2];
+                    const p1 = points[i-1];
+                    const p2 = points[i];
+                    
+                    // Determine if it's a left or right turn
+                    const cross = (p1.x - p0.x) * (p2.y - p1.y) - (p1.y - p0.y) * (p2.x - p1.x);
+                    sequence.push(cross > 0 ? 1 : -1);
+                }
+                
+                return sequence;
+            }
+            
+            // For lower iterations, use the original method
+            let sequence = [1]; // 1 represents a right turn
+            
+            for (let i = 0; i < iterations; i++) {
+                const copy = [...sequence];
+                sequence.push(1);
+                for (let j = copy.length - 1; j >= 0; j--) {
+                    sequence.push(-copy[j]);
+                }
+            }
+            
+            return sequence;
+        }
+
+        // Utility function to convert hex to RGB for gradient calculation
+        function hexToRgb(hex) {
+            const bigint = parseInt(hex.slice(1), 16);
+            const r = (bigint >> 16) & 255;
+            const g = (bigint >> 8) & 255;
+            const b = bigint & 255;
+            return [r, g, b];
+        }
+
+        // Get color based on position and drawing mode
+        function getColor(index, total, startColorHex, endColorHex, mode) {
+            if (mode === 'solid') {
+                return startColorHex;
+            }
+            
+            const [startR, startG, startB] = hexToRgb(startColorHex);
+            const [endR, endG, endB] = hexToRgb(endColorHex);
+            
+            if (mode === 'rainbow') {
+                const hue = (index / total) * 360;
+                return `hsl(${hue}, 100%, 50%)`;
+            }
+            
+            // Gradient mode
+            const t = index / total;
+            const r = Math.round(startR * (1 - t) + endR * t);
+            const g = Math.round(startG * (1 - t) + endG * t);
+            const b = Math.round(startB * (1 - t) + endB * t);
+            
+            return `rgb(${r}, ${g}, ${b})`;
+        }
+
+        // Draw the dragon curve
+        function drawDragonCurve(sequence, sizeFactor, startColorHex, endColorHex, lineWidth, bgOpacity, mode) {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // Draw background with opacity
+            ctx.fillStyle = `rgba(255, 255, 255, ${bgOpacity/100})`;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            const centerX = canvas.width / 2;
+            const centerY = canvas.height / 2;
+            const maxSize = Math.min(canvas.width, canvas.height) * sizeFactor / 100;
+            
+            let x = centerX;
+            let y = centerY;
+            let angle = 0;
+            
+            // Calculate segment length based on iterations to fit the curve properly
+            const iterations = sequence.length > 0 ? Math.log2(sequence.length + 1) : 1;
+            const segmentLength = maxSize / Math.pow(2, iterations/2);
+            
+            ctx.lineCap = 'round';
+            ctx.lineWidth = lineWidth;
+            
+            // Update stats
+            segmentCountElement.textContent = sequence.length;
+            iterationCountElement.textContent = Math.floor(iterations);
+            
+            // Draw the curve
+            for (let i = 0; i < sequence.length; i++) {
+                ctx.strokeStyle = getColor(i, sequence.length, startColorHex, endColorHex, mode);
+                
+                // Update angle based on turn direction
+                angle += sequence[i] * Math.PI / 2;
+                
+                // Calculate next point
+                const nextX = x + Math.cos(angle) * segmentLength;
+                const nextY = y + Math.sin(angle) * segmentLength;
+                
+                // Draw line segment
+                ctx.beginPath();
+                ctx.moveTo(x, y);
+                ctx.lineTo(nextX, nextY);
+                ctx.stroke();
+                
+                // Update current position
+                x = nextX;
+                y = nextY;
+            }
+        }
+
+        // Animate the construction of the dragon curve
+        function animateConstruction(iterations, sizeFactor, startColor, endColor, lineWidth, bgOpacity, speed, mode) {
+            // Clear previous animation
+            if (animationId) {
+                cancelAnimationFrame(animationId);
+            }
+            
+            // Generate the full sequence
+            sequence = dragonCurve(iterations);
+            currentStep = 0;
+            currentIteration = 0;
+            isAnimating = true;
+            isPaused = false;
+            
+            animateBtn.disabled = true;
+            pauseBtn.disabled = false;
+            pauseBtn.textContent = 'Pause';
+            
+            // Animation function
+            function animate() {
+                if (isPaused) return;
+                
+                if (currentStep >= sequence.length) {
+                    // Animation complete
+                    isAnimating = false;
+                    animateBtn.disabled = false;
+                    pauseBtn.disabled = true;
+                    return;
+                }
+                
+                // Calculate how many steps to draw in this frame based on speed
+                const stepsPerFrame = Math.pow(2, speed) / 2;
+                const endStep = Math.min(currentStep + stepsPerFrame, sequence.length);
+                
+                // Draw up to the current step
+                const partialSequence = sequence.slice(0, endStep);
+                drawDragonCurve(partialSequence, sizeFactor, startColor, endColor, lineWidth, bgOpacity, mode);
+                
+                currentStep = endStep;
+                animationId = requestAnimationFrame(animate);
+            }
+            
+            // Start animation
+            animationId = requestAnimationFrame(animate);
+        }
+
+        // Toggle pause/resume
+        function togglePause() {
+            if (!isAnimating) return;
+            
+            isPaused = !isPaused;
+            pauseBtn.textContent = isPaused ? 'Resume' : 'Pause';
+            
+            if (!isPaused) {
+                animationId = requestAnimationFrame(animateConstruction);
+            }
+        }
+
+        // Update display values
+        function updateDisplayValues() {
+            iterationsValue.textContent = iterationsSlider.value;
+            sizeValue.textContent = sizeSlider.value;
+            speedValue.textContent = speedSlider.value;
+            lineWidthValue.textContent = lineWidthSlider.value;
+            bgOpacityValue.textContent = bgOpacitySlider.value;
+        }
+
+        // Redraw the dragon curve with current settings
+        function redraw() {
+            const iterations = parseInt(iterationsSlider.value);
+            const sizeFactor = parseInt(sizeSlider.value);
+            const startColor = startColorPicker.value;
+            const endColor = endColorPicker.value;
+            const lineWidth = parseInt(lineWidthSlider.value);
+            const bgOpacity = parseInt(bgOpacitySlider.value);
+            const mode = drawModeSelect.value;
+            
+            const sequence = dragonCurve(iterations);
+            drawDragonCurve(sequence, sizeFactor, startColor, endColor, lineWidth, bgOpacity, mode);
+        }
+
+        // Reset to default values
+        function resetToDefault() {
+            // Stop any running animation
+            if (animationId) {
+                cancelAnimationFrame(animationId);
+                animationId = null;
+            }
+            
+            isAnimating = false;
+            isPaused = false;
+            animateBtn.disabled = false;
+            pauseBtn.disabled = true;
+            pauseBtn.textContent = 'Pause';
+            
+            // Reset controls
+            iterationsSlider.value = 10;
+            sizeSlider.value = 80;
+            speedSlider.value = 5;
+            startColorPicker.value = '#4facfe';
+            endColorPicker.value = '#00f2fe';
+            lineWidthSlider.value = 2;
+            bgOpacitySlider.value = 5;
+            drawModeSelect.value = 'gradient';
+            
+            updateDisplayValues();
+            redraw();
+        }
+
+        // Event listeners
+        iterationsSlider.addEventListener('input', () => {
+            updateDisplayValues();
+            redraw();
+        });
+
+        sizeSlider.addEventListener('input', () => {
+            updateDisplayValues();
+            redraw();
+        });
+
+        speedSlider.addEventListener('input', updateDisplayValues);
+
+        startColorPicker.addEventListener('input', redraw);
+        endColorPicker.addEventListener('input', redraw);
+
+        lineWidthSlider.addEventListener('input', () => {
+            updateDisplayValues();
+            redraw();
+        });
+
+        bgOpacitySlider.addEventListener('input', () => {
+            updateDisplayValues();
+            redraw();
+        });
+
+        drawModeSelect.addEventListener('change', redraw);
+
+        animateBtn.addEventListener('click', () => {
+            const iterations = parseInt(iterationsSlider.value);
+            const sizeFactor = parseInt(sizeSlider.value);
+            const startColor = startColorPicker.value;
+            const endColor = endColorPicker.value;
+            const lineWidth = parseInt(lineWidthSlider.value);
+            const speed = parseInt(speedSlider.value);
+            const bgOpacity = parseInt(bgOpacitySlider.value);
+            const mode = drawModeSelect.value;
+            
+            animateConstruction(iterations, sizeFactor, startColor, endColor, lineWidth, bgOpacity, speed, mode);
+        });
+
+        pauseBtn.addEventListener('click', togglePause);
+        resetBtn.addEventListener('click', resetToDefault);
+
+        // Initialize
+        window.addEventListener('load', () => {
+            setCanvasSize();
+            updateDisplayValues();
+            redraw();
+        });
+
+        window.addEventListener('resize', () => {
+            setCanvasSize();
+            redraw();
+        });
+    </script>
+</body>
+</html>
